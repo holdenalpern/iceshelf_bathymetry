@@ -1,6 +1,6 @@
 # Bathymetry Uncertainty Quantification of Various Antarctic Ice Shelves
 
-Authors: Michael Field,...
+Authors: Michael Field, ...
 
 ## Background
 
