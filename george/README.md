@@ -2,8 +2,10 @@
 
 General inbformation for the area: 
 Geology is primarily composed of sedimentary and volcanic rocks from the Mesozoic era similar to Alexander Island (a nearby land mass). All of these ice shelves make contact with the Bellingshausen Sea and are all being affected by thinning and retreat like most of the Antarctic Peninsula throughout the past few decades. It is noteworthy that the Bach and Strange ice shelves are more vulnerable to sudden changes compared to relatively steady large ice sheets like George VI, even being threatened the waves associated with powerful storms. 
+
 George VI:
 In this area, George VI is the most well-researched, likely due to its large size. The George VI ice shelf is unusual geographically as it is situated in a narrow channel that is open on both ends (as opposed to being connected to grounded ice on one side and ocean on the other). Around half of the inflow into the southern end of the ice shelf travels as throughflow to the northern end of the ice shelf. This throughflow contains circumpolar deepwater (CDW) which during transportation, causes basal melting throughout the ice shelf due to its relatively high temperature (around 3.5 Celsius), which also causes upwelling of meltwater and threatens the stability of the ice shelf (Jenkins and Jacobs, 2008). In the research paper Seafloor Depth of George VI Sound, Antarctic Peninsula from Inversion of Aerogravity Data (Constantino et al., 2020) a gravity inversion was done for the George VI ice shelf, revealing a new ridge and relocating the western fault line.
+
 Wilkins:
 The study Changes of Wilkins Ice Shelf Over the Past 15 Years (Braun et al., 2009) found that tidal effects, crack formations/ fractures, and buoyancy forces play key roles in Wilkins’ stability (as opposed to the drainage of melt ponds into crevasses that were largely blamed for recent break-ups in the region) and identified 3,100 km^2 of pre-conditioned failure zones currently at risk to disintegration and/or retreat.
 
