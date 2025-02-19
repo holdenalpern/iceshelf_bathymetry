@@ -14,7 +14,5 @@ __pycache__/
 ~$*
 */~$*
 */results/
-<<<<<<< HEAD
-=======
 */results/*
->>>>>>> bd016f203ff593aadbfb2645873d4c4134565cb4
+*.ini
