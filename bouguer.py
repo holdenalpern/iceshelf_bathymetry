@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 from prisms import make_prisms
 from utilities import xy_into_grid, lowpass_filter_invpad
 
-def boug_interpolation_sgs(ds, grav, density):
+def boug_interpolation_sgs(ds, grav, density, maxlag=100e3, n_lags=70, covmodel='spherical', azimuth=0, minor_range_scale=1, k=64, rad=100e3):
     """
     Stochastically interpolate gridded Bouguer disturbance using SGS
 
@@ -24,6 +24,13 @@ def boug_interpolation_sgs(ds, grav, density):
         ds : preprocessed BedMachine xarray.Dataset
         grav : pandas.DataFrame of gravity data
         density : float of rock or background density
+        maxlag : maximum range distance for variogram
+        n_lags : number of lag bins for variogram
+        covmodel : covariance model for interpolation
+        azimuth : orientation in degrees of primary range
+        minor_range_scale : scale the major range by this to make the minor range
+        k : number of neighboring data points to estimate a point in SGS
+        rad : maximum search distance for SGS 
     Outputs:
         Terrain effect for use as target of inversion.
     """
@@ -53,30 +60,22 @@ def boug_interpolation_sgs(ds, grav, density):
     # compute experimental (isotropic) variogram
     coords = df_grid[['X','Y']].values
     values = df_grid['NormZ']
-
-    maxlag = 100_000             # maximum range distance
-    n_lags = 70                # num of bins
     
     V3 = skg.Variogram(coords, values, bin_func='even', n_lags=n_lags, 
                    maxlag=maxlag, normalize=False)
     
-    V3.model = 'spherical'
+    V3.model = covmodel
     
     # set variogram parameters
-    azimuth = 0
     nugget = V3.parameters[2]
 
     # the major and minor ranges are the same in this example because it is isotropic
     major_range = V3.parameters[0]
-    minor_range = V3.parameters[0]
+    minor_range = V3.parameters[0] * minor_range_scale
     sill = V3.parameters[1]
-    vtype = 'spherical'
 
     # save variogram parameters as a list
-    vario = [azimuth, nugget, major_range, minor_range, sill, vtype]
-
-    k = 64         # number of neighboring data points used to estimate a given point 
-    rad = 100_000    # 100 km search radius
+    vario = [azimuth, nugget, major_range, minor_range, sill, covmodel]
 
     sim = gstatsim.Interpolation.okrige_sgs(XX, df_grid, 'X', 'Y', 'NormZ', k, vario, rad, quiet=True)
     sim_trans = nst_trans.inverse_transform(sim.reshape(-1,1))
