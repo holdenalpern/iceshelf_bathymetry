@@ -9,12 +9,36 @@ import skgstat as skg
 import xarray as xr
 import xrft
 import verde as vd
+from scipy.interpolate import RBFInterpolator
 
 import warnings
 warnings.filterwarnings("ignore")
 
 from prisms import make_prisms
 from utilities import xy_into_grid, lowpass_filter_invpad
+
+def bm_terrain_effect(ds, grav, rock_density=2670):
+    """
+    Forward model gravity response of terrain
+
+    Args:
+        ds : preprocessed BedMachine xarray.Dataset
+        grav : pandas.DataFrame of gravity data
+        rock_density : float of rock or background density
+    Outputs:
+        Terrain effect for use as target of inversion.
+    """
+    density_dict = {
+        'ice' : 917,
+        'water' : 1027,
+        'rock' : density
+    }
+    
+    prisms, densities = make_prisms(ds, ds.bed.values, density_dict)
+    pred_coords = (grav.x, grav.y, grav.height)
+    g_z = hm.prism_gravity(pred_coords, prisms, densities, field='g_z')
+
+    return g_z
 
 def boug_interpolation_sgs(ds, grav, density, maxlag=100e3, n_lags=70, covmodel='spherical', azimuth=0, minor_range_scale=1, k=64, rad=100e3):
     """
@@ -136,3 +160,38 @@ def sgs_filt(ds, grav, density, cutoff, pad=0):
     new_target = grav.faa.values - boug_filt
     
     return new_target
+
+def trend(ds, grav, boug_dist, smoothing=1e11, full_grid=False):
+    """
+    Calculate a trend using Radial Basis Functions
+
+    Args:
+        ds : preprocessed BedMachine xarray.Dataset
+        grav : pandas.DataFrame gravity data
+        boug_dist : bouguer disturbance at the gravity coordinates
+        smoothing : how smooth to make the trend
+        full_trend : if True, put the trend on the full grid, otherwise
+            return the trend only at the gravity coordinates
+    Outputs:
+        Trend on either the gravity coordinates or on the full grid
+    """
+    xx, yy = np.meshgrid(ds.x.values, ds.y.values)
+    
+    x_cond = grav.loc[grav.inv_msk==False, 'x'].values
+    y_cond = grav.loc[grav.inv_msk==False, 'y'].values
+    boug_cond = boug_dist[grav.inv_msk==False]
+    cond_coords = np.array([x_cond, y_cond]).T
+    
+    rbf = RBFInterpolator(cond_coords, boug_cond, smoothing=1e11)
+
+    # if True solve for trend on whole grid
+    if full_grid == True:
+        pred_grid = np.stack([xx.flatten(), yy.flatten()]).T
+        trend_rbf = rbf(pred_grid).reshape(xx.shape)
+
+    # else solve for trend only at gravity coordinates
+    else:
+        grav_coords = grav[['x', 'y']].values
+        trend_rbf = rbf(grav_coords)
+    
+    return trend_rbf
