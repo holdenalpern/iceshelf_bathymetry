@@ -31,7 +31,7 @@ def bm_terrain_effect(ds, grav, rock_density=2670):
     density_dict = {
         'ice' : 917,
         'water' : 1027,
-        'rock' : density
+        'rock' : rock_density
     }
     
     prisms, densities = make_prisms(ds, ds.bed.values, density_dict)
@@ -40,7 +40,7 @@ def bm_terrain_effect(ds, grav, rock_density=2670):
 
     return g_z
 
-def boug_interpolation_sgs(ds, grav, density, maxlag=100e3, n_lags=70, covmodel='spherical', azimuth=0, minor_range_scale=1, k=64, rad=100e3):
+def boug_interpolation_sgs(ds, grav, density, maxlag=100e3, n_lags=70, covmodel='spherical', azimuth=0, minor_range_scale=1, k=64, rad=100e3, quiet=True):
     """
     Stochastically interpolate gridded Bouguer disturbance using SGS
 
@@ -101,7 +101,7 @@ def boug_interpolation_sgs(ds, grav, density, maxlag=100e3, n_lags=70, covmodel=
     # save variogram parameters as a list
     vario = [azimuth, nugget, major_range, minor_range, sill, covmodel]
 
-    sim = gstatsim.Interpolation.okrige_sgs(XX, df_grid, 'X', 'Y', 'NormZ', k, vario, rad, quiet=True)
+    sim = gstatsim.Interpolation.okrige_sgs(XX, df_grid, 'X', 'Y', 'NormZ', k, vario, rad, quiet=quiet)
     sim_trans = nst_trans.inverse_transform(sim.reshape(-1,1))
 
     return grav.faa.values-sim_trans.squeeze()
@@ -141,7 +141,7 @@ def filter_boug(ds, grav, target, cutoff=10e3, pad=0):
     
     return boug_filt
 
-def sgs_filt(ds, grav, density, cutoff, pad=0):
+def sgs_filt(ds, grav, density, maxlag=100e3, n_lags=70, covmodel='spherical', azimuth=0, minor_range_scale=1, k=64, rad=100e3, cutoff=10e3, pad=0):
     """
     Performs SGS Bouguer interpolation, filters Bouguer,
     returns new target terrain effect
@@ -155,7 +155,7 @@ def sgs_filt(ds, grav, density, cutoff, pad=0):
     Outputs:
         Target terrain effect from filtered Bouguer SGS interpolation
     """
-    target = boug_interpolation_sgs(ds, grav, density)
+    target = boug_interpolation_sgs(ds, grav, density, maxlag, n_lags, covmodel, azimuth, minor_range_scale, k, rad)
     boug_filt = filter_boug(ds, grav, target, cutoff, pad)
     new_target = grav.faa.values - boug_filt
     
@@ -182,7 +182,7 @@ def trend(ds, grav, boug_dist, smoothing=1e11, full_grid=False):
     boug_cond = boug_dist[grav.inv_msk==False]
     cond_coords = np.array([x_cond, y_cond]).T
     
-    rbf = RBFInterpolator(cond_coords, boug_cond, smoothing=1e11)
+    rbf = RBFInterpolator(cond_coords, boug_cond, smoothing=smoothing)
 
     # if True solve for trend on whole grid
     if full_grid == True:
