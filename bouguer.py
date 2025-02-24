@@ -42,6 +42,20 @@ def bm_terrain_effect(ds, grav, rock_density=2670):
     return g_z
 
 def variograms(grav, data, bin_func='even', maxlag=100e3, n_lags=70, covmodels=['gaussian', 'spherical', 'exponential']):
+    """
+    Make experimental variogram and fit covariance models.
+
+    Args:
+        grav : pandas.DataFrame of gravity data
+        data : the data to make the variogram of
+        bin_func : binning function or array of bin edges
+        maxlag : maximum lag for experimental variogram
+        n_lags : number of lag bins for variogram
+        covmodels : covariance models to fit to variogram
+        azimuth : orientation in degrees of primary range
+    Outputs:
+        Dictionary of variograms, pd.DataFrame of dataset, experimental variogram values, bins, and nscore transformer
+    """
     x_cond = grav.loc[grav.inv_msk==False, 'x'].values
     y_cond = grav.loc[grav.inv_msk==False, 'y'].values
     data_cond = data[grav.inv_msk==False].reshape(-1,1)
